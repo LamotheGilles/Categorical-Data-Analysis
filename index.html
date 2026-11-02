@@ -3389,8 +3389,26 @@ Experience  1.051297434 1.3689441
 
 <BR><BR>
 
+<b>Comments:</b>
+<ul><li> <b>Hypothesis:</b> The investigators hypothesize that larger companies are more likely to attract venture-capital funding. The logarithm of face value is therefore treated as the primary explanatory variable of interest. The logarithm of the number of shares issued and leveraged-buyout status are included as adjustment variables to control for potential confounding. Before interpreting the estimated effect of face value, it is important to assess whether a linear effect on the logit scale provides an adequate description of the relationship.
+<li> <b>Why log predictors? :</b> 
+<ul>
+<li> The face values of the companies are <b>highly skewed to the right</b>. Consequently, a relatively small number of companies have exceptionally large values and may exert high leverage on the fitted logistic regression model. A logarithmic transformation compresses the upper tail of the distribution, reducing the influence of extreme observations and often producing a more stable relationship between the explanatory variable and the log-odds of the outcome.
+<li> In addition to reducing the influence of extreme observations, the logarithmic transformation is often more consistent with the underlying scientific question. Investors may be more responsive to proportional changes in company value than to equal absolute changes. For example, increasing a firm's value from $1 million to $2 million may be more consequential than increasing it from $101 million to $102 million. The logarithmic scale reflects this idea by modeling multiplicative rather than additive differences.
+</ul>
+<li> <b>Pedagogical Note:</b>  In practice, we would generally adjust for potential confounding variables when studying the effect of company value on venture-capital funding. Here we temporarily ignore these additional variables for pedagogical purposes so that we can focus on the relationship between a binary outcome and a single continuous predictor. Our goal is to give an example of a simple model (i.e. one explanatory variable) that does not fit well. We will discuss the IPO data further in Example 22. 
+</ul>
 
-Let us fit a logistic regression model to describe the probability of attracting venture capital funding as a function of the logarithm of face value of the company.
+<br><Br>
+
+Let us fit a logistic regression model to describe the probability of attracting venture capital funding as a function of the logarithm of face value of the company:
+\[
+\mbox(logit)(\pi)=\beta_0+\beta_1\,\log(\mbox{Face Value}), 
+\]
+where $\pi$ is the probability of attracting capital. 
+
+<br><Br>
+
 
 <pre>
 > mod<-glm(Venture.Capital ~ I(log(Face.Value)), binomial(link=logit), data=IPO.data)

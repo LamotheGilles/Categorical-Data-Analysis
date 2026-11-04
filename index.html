@@ -3458,6 +3458,12 @@ with(new.data,lines(x=log(Face.Value),y=predict(mod.smooth,new.data),lty=2))
 
 
 <BR><BR>
+<b>Discussion: </b> The LOWESS curve suggests that the relationship  between the probability of attracting venture capital  funding and the logarithm of the face value is nonlinear. 
+The probability appears to rise as the face value increases among smaller companies but declines among larger companies. This pattern indicates that the assumption  of a single linear effect on the logit scale may be inadequate. In a future example, we investigate several alternative logistic regression models that can  accommodate such nonlinear effects.
+
+
+<BR><BR>
+
 
 We could try to improve the fit by fitting a second-order model: $\mbox{logit}(\pi)={\beta}_0+{\beta}_1\,x+{\beta}_2\,x^2, $ where $x$ is the logarithm of the face value.
 
@@ -3534,7 +3540,7 @@ with(new.data,lines(x=Log.Face.Value,y=predict(mod.smooth,new.data),lty=2))
  <BR><BR>
 
 
- Note that the likelihood ratio test testing the significance of the second order term has a very small \(p\)-value (\(1.29 \times 10^{13}\)). This confirms the need for a second order term.
+Note that the likelihood ratio test testing the significance of the second order term has a very small \(p\)-value (\(1.29 \times 10^{13}\)). This confirms the need for a second order term.
 
  <pre>
 > anova(mod,test="Chisq")
@@ -4195,337 +4201,500 @@ attr(,"calpha")
 
 <BR><BR>
 
+<b>Objective of the study:</b> In many observational studies, one explanatory variable is of primary scientific interest, while the remaining variables are included primarily to control for confounding. In this study, our principal interest is the effect of the face value of a company on the probability of attracting venture capital funding. The variables <code>Number.of.shares</code> and <code>Leveraged.Buyout</code> will therefore be treated as adjustment variables. Our principal objective is to determine whether, after controlling for these potential confounders, the relationship between the probability of attracting venture capital funding and the logarithm of the face value can be adequately described by a linear effect.
+<br>
+<b>Principal Question:</b> After controlling for the number of shares offered and the presence of a leveraged buyout, is a linear effect of <code>log(Face.Value)</code> adequate for describing the probability of attracting venture capital funding?
+<br>
+<br>
+<br><BR><BR>
 
-<b>Lowess curve:</b> Let us describe the probability of attracting venture capital as a function of the logarithm of the face value. Here is a scatter plot of the response against the logarithm of the face value with
-an overlay of the fitted response of a first-order logistic regression model and with an overlay of a lowess smooth curve. We had constructed this plot above in Example 18. The model does not fit the data well. The relationship
-between the probability of attracting venture capital and the log of the face value is not monotone. It appears to be a positive relationship when the face value is small and a negative relationship when the face value is large.
-
-
-<BR><BR>
-
-<img src="./plots/IPOPlot.png" alt="Plot of the success/failure against experience" >
-
-<BR><BR>
-
-<b>Broken line regression with a known breaking point:</b>
-
-<BR><BR>
-
-We will use a broken line regression model (also called a segmented line regression model, or a linear spline model). Consider the following logit model
-\[
-\mbox{logit}(\pi)=\beta_0+\beta_1\,x+\beta_2\,\delta_b\,(x-b)=\left\{
-\begin{array}{ll}
-\beta_0+\beta_1\,x, & \mbox{ if } x< b \\
-\beta_0+\beta_1\,x+\beta_2\,(x-b)=(\beta_0-b\,\beta_2)+(\beta_1+\beta_2)\,x, & \mbox{ if } x \geq b \\
-\end{array}
-\right.
-\]
-where \(\delta_b\) is dummy variable that is 1 for \(x\geq b\) and is 0 for \(x < b \).
-
-<BR><BR>
-
-\(b\) is called a breakpoint or a knot. Note that we are assuming the link is a continuous function with two linear segments. (It is a continuous function since the two linear functions are equal at the boundary, that is \(\mbox{logit}(\pi)=\beta_0+\beta_1\,b\) at \(x=b\).)
-
-<BR><BR>
-
-\(h(x)=\delta_b\,(x-b)\) is called a hinge function. It is a predictor that we add to the model (asuming that \(b\) is known).
-
-<BR><BR>
-
-
-If we assume that \(b\) is unknown, then our model is non-linear in the parameters \((\beta_0,\beta_1,\beta_2,b)\). However, if we assume that the breakpoint  \(b\) is known,  then our model is simply a logistic regression model for which we can compute the max log likelihood. As an example, let us suppose that the breakpoint is \(b=17\) log(dollars) or we say we have a knot at \(b=17\) log(dollars). The model is :
+<b>Baseline logistic regression model:</b>
+Let
 
 \[
-\mbox{logit}(\pi)=\beta_0+\beta_1\,x+\beta_2\,h(x)=\left\{
-\begin{array}{ll}
-\beta_0+\beta_1\,x, & \mbox{ if } x< 17 \\
-\beta_0+\beta_1\,x+\beta_2\,(x-17)=(\beta_0-17\,\beta_2)+(\beta_1+\beta_2)\,x, & \mbox{ if } x \geq 17 \\
-\end{array}
-\right.
+x=\log(\mbox{Face.Value}),
 \]
 
-There is a package called <code>lspine</code> that builds the hinge function for us, and displays the coefficients in a convenient way. It gives the intercept, and the slopes of the consecutive line segments. The intercept is $\hat{\beta}_0=-24.7323$, and the estimations of the two slopes are 1.4984, and -1.3033.
+and let
+
+\[
+z_1=\mbox{Number.of.shares},
+\qquad
+z_2=\mbox{Leveraged.Buyout}.
+\]
+
+To investigate our principal question, we first fit a logistic regression model with a linear effect of the logarithm of the face value while controlling for the potential confounding variables:
+
+\[
+\mbox{logit}(\pi)
+=
+\beta_0
++
+\beta_1x
++
+\beta_2z_1
++
+\beta_3z_2.
+\]
+
+This model assumes that the log-odds of attracting venture capital funding changes linearly with the logarithm of the face value after controlling for the other explanatory variables.
+
+<BR><BR>
+
+Here is the fitted baseline model. 
+
+<BR><BR>
+
 
 <pre>
-> library(lspline)
-> mod<-glm(Venture.Capital ~ lspline(Log.Face.Value,knots=c(17)),
-+          binomial(link=logit), data=IPO.data)
-> summary(mod)
+> mod<-glm(Venture.Capital ~ Log.Face.Value+Number.of.shares+Leveraged.Buyout,
++       binomial(link=logit), data=IPO.data)
+> mod
 
-Call:
-glm(formula = Venture.Capital ~ lspline(Log.Face.Value, knots = c(17)),
-    family = binomial(link = logit), data = IPO.data)
-
-Deviance Residuals:
-    Min       1Q   Median       3Q      Max
--1.5001  -1.0763  -0.5371   1.0702   2.3349
+Call:  glm(formula = Venture.Capital ~ Log.Face.Value + Number.of.shares + 
+    Leveraged.Buyout, family = binomial(link = logit), data = IPO.data)
 
 Coefficients:
-                                        Estimate Std. Error z value Pr(>|z|)
-(Intercept)                             -24.7323     3.4573  -7.154 8.45e-13 ***
-lspline(Log.Face.Value, knots = c(17))1   1.4984     0.2099   7.137 9.52e-13 ***
-lspline(Log.Face.Value, knots = c(17))2  -1.3033     0.2959  -4.405 1.06e-05 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+     (Intercept)    Log.Face.Value  Number.of.shares  
+      -2.078e+01         1.316e+00        -6.625e-07  
+Leveraged.Buyout  
+      -3.055e-01  
 
-(Dispersion parameter for binomial family taken to be 1)
-
-    Null deviance: 661.20  on 481  degrees of freedom
-Residual deviance: 593.48  on 479  degrees of freedom
-AIC: 599.48
-
-Number of Fisher Scoring iterations: 4
+Degrees of Freedom: 481 Total (i.e. Null);  478 Residual
+Null Deviance:	    661.2 
+Residual Deviance: 616.1 	AIC: 624.1
 </pre>
 
 
 
-The estimated logit is
+<BR><BR>
+<b>Assessing the linearity assumption:</b> To address the principal question of the study, we must determine how much flexibility is required to describe the effect of <code>Log.Face.Value</code> after controlling for the potential confounding variables. We begin by fitting a sequence of nested logistic regression models that allocate one, two, and three degrees of freedom to <code>Log.Face.Value</code>. The models are then compared using likelihood-ratio tests.
+
+<br><br>
+
+The one-degree-of-freedom model assumes that the log-odds of attracting venture capital funding is a linear function of <code>Log.Face.Value</code>. The two-degree-of-freedom model allows a quadratic relationship, while the three-degree-of-freedom model allows a cubic relationship. By comparing these nested models, we can determine whether additional flexibility is required to adequately describe the relationship between the probability of attracting venture capital funding and <code>Log.Face.Value</code>.
+
+<br><br>
+
+The likelihood-ratio test compares the fit of consecutive models. A significant result indicates that the additional degree of freedom provides a meaningful improvement in model fit. We also compare the models using Akaike's Information Criterion (AIC),
+
 \[
-\mbox{logit}(\pi)=\left\{
+\mbox{AIC}=-2\ell(\hat{\boldsymbol{\beta}})+2p,
+\]
+
+where \(\ell(\hat{\boldsymbol{\beta}})\) is the maximized log likelihood and \(p\) is the number of estimated parameters. A smaller AIC indicates that the gain in information obtained by adding parameters is sufficient to justify the increased model complexity. Differences in AIC exceeding about 10 are generally regarded as strong evidence in favour of the model with the smaller AIC.
+<br><br>
+
+<BR><BR>
+<b>Remark:</b> The likelihood-ratio test and AIC provide complementary information. The likelihood-ratio test assesses whether the additional parameter significantly improves the fit of the model, whereas the AIC assesses whether the improvement in fit is large enough to justify the increased model complexity.
+
+<BR><BR>
+
+
+<b>Fitting the models:</b> We first fit the baseline logistic regression model with a linear effect of <code>Log.Face.Value</code>  then fit a second model that adds a quadratic term, and a third model that adds a cubic term.   
+
+<pre>
+## One degree of freedom for Log.Face.Value
+mod.1df <- glm(
+  Venture.Capital ~
+    poly(Log.Face.Value, degree = 1, raw = TRUE) +
+    Number.of.shares +
+    Leveraged.Buyout,
+  family = binomial(link = logit),
+  data = IPO.data)
+
+## Two degrees of freedom for Log.Face.Value
+mod.2df <- glm(
+  Venture.Capital ~
+    poly(Log.Face.Value, degree = 2, raw = TRUE) +
+    Number.of.shares +
+    Leveraged.Buyout,
+  family = binomial(link = logit),
+  data = IPO.data)
+
+## Three degrees of freedom for Log.Face.Value
+mod.3df <- glm(
+  Venture.Capital ~
+    poly(Log.Face.Value, degree = 3, raw = TRUE) +
+    Number.of.shares +
+    Leveraged.Buyout,
+  family = binomial(link = logit),
+  data = IPO.data)
+
+## Likelihood-ratio tests
+anova(mod.1df, mod.2df, mod.3df, test = "LR")
+
+## Compare AIC values
+AIC(mod.1df, mod.2df, mod.3df)</pre>
+<br>
+<BR><BR>
+
+<b>Here is the output:</b>
+<pre>
+> ## Likelihood-ratio tests
+> anova(mod.1df, mod.2df, mod.3df, test = "LR")
+Analysis of Deviance Table
+
+Model 1: Venture.Capital ~ poly(Log.Face.Value, degree = 1, raw = TRUE) + 
+    Number.of.shares + Leveraged.Buyout
+Model 2: Venture.Capital ~ poly(Log.Face.Value, degree = 2, raw = TRUE) + 
+    Number.of.shares + Leveraged.Buyout
+Model 3: Venture.Capital ~ poly(Log.Face.Value, degree = 3, raw = TRUE) + 
+    Number.of.shares + Leveraged.Buyout
+  Resid. Df Resid. Dev Df Deviance  Pr(>Chi)    
+1       478     616.09                          
+2       477     587.73  1  28.3604 1.007e-07 ***
+3       476     586.05  1   1.6782    0.1952    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> 
+> ## Compare AIC values
+> AIC(mod.1df, mod.2df, mod.3df)
+        df      AIC
+mod.1df  4 624.0925
+mod.2df  5 597.7321
+mod.3df  6 598.0539
+</pre>
+
+<BR><BR>
+
+<b>Results:</b> The likelihood-ratio test comparing the one- and two-degree-of-freedom models is highly significant (Dev(1)=28.36, <i>p</i>&lt;0.0001), indicating that a linear effect of <code>Log.Face.Value</code> is inadequate after controlling for <code>Number.of.shares</code> and <code>Leveraged.Buyout</code>. However, the likelihood-ratio test comparing the two- and three-degree-of-freedom models is not significant (Dev(1)=1.68, <i>p</i>=0.1952), suggesting that a third degree of freedom is not required.
+
+<br><br>
+
+The AIC also supports this conclusion. The AIC decreases substantially when moving from the one-degree-of-freedom model to the two-degree-of-freedom model, indicating that the gain in information more than justifies the additional model complexity. In contrast, the reduction in AIC obtained by adding a third degree of freedom is small. Since differences in AIC exceeding about 10 are generally regarded as strong evidence in favour of the model with the smaller AIC, the AIC suggests that most of the information gain is obtained by moving from one to two degrees of freedom.
+
+<br><br>
+
+Taken together, the likelihood-ratio tests and the AIC comparison suggest that a model with two degrees of freedom is sufficient to describe the relationship between the probability of attracting venture capital funding and <code>Log.Face.Value</code> after controlling for <code>Number.of.shares</code> and <code>Leveraged.Buyout</code>. We now seek an interpretable two-degree-of-freedom model.
+<br><br>
+<br><br>
+
+
+
+
+<b>A linear spline model with two degrees of freedom:</b> The previous analysis suggests that a model with two degrees of freedom is sufficient to describe the relationship between the probability of attracting venture capital funding and <code>Log.Face.Value</code> after controlling for <code>Number.of.shares</code> and <code>Leveraged.Buyout</code>. We now seek a two-degree-of-freedom model that is easy to interpret.
+
+<br><br>
+
+One possibility is to use a quadratic model. However, the coefficients of a quadratic model are often difficult to interpret because the effect of <code>Log.Face.Value</code> changes continuously over its range. We will instead use a linear spline model with a single knot. Like the quadratic model, a linear spline model with one knot allocates two degrees of freedom to <code>Log.Face.Value</code>. However, it allows the relationship to be summarized using separate slopes for companies with relatively small and relatively large face values.
+
+<br><br>
+
+For simplicity, we place the knot at
+
+\[
+b=17,
+\]
+
+which is approximately equal to the median value of <code>Log.Face.Value</code>.
+
+<BR><BR>
+<b>With R:</b>
+<pre>
+> median(IPO.data$Log.Face.Value)
+[1] 16.78593
+</pre>
+
+<BR><BR>
+
+
+Define the hinge function
+
+\[
+h(x)=(x-17)_+
+=
+\left\{
 \begin{array}{ll}
- -24.7323 +1.4984\,x, & \mbox{ if } x< 17 \\
- -24.7323-1.3033\,(x-17), & \mbox{ if } x \geq 17 \\
+0, & x<17,\\
+x-17, & x\ge 17.
 \end{array}
 \right.
 \]
 
-<b>Interpretation:</b> When the face value is less than 17 log(dollars), we estimate that the odds of attracting funding increases by \((e^{1.4984})\times 100\%-100\%=345\%\) for each log unit in the face value.
- However, if the face value is more than 17 log(dollars), then we estimate that the odds of attracting funding decreases by \(100\%-e^{-1.3033}\times 100\%=72.8\%\) for each log unit in the face value.
+The resulting logistic regression model is
 
-<BR><BR>
+\[
+\mbox{logit}(\pi)
+=
+\beta_0
++\beta_1x
++\beta_2h(x)
++\beta_3z_1
++\beta_4z_2,
+\]
 
+where
 
-Here are commands to construct a plot of the estimated response function and an overlay of the lowess curve.
+\[
+x=\mbox{Log.Face.Value},
+\qquad
+z_1=\mbox{Number.of.shares},
+\qquad
+z_2=\mbox{Leveraged.Buyout}.
+\]
 
+For companies with \(x< 17\), the log-odds of attracting venture capital funding changes at a rate of \(\beta_1\) per unit increase in <code>Log.Face.Value</code>. For companies with \(x\ge 17\), the slope becomes \(\beta_1+\beta_2\). Thus, the model allows the effect of <code>Log.Face.Value</code> to differ for companies with relatively small and relatively large face values while continuing to control for the potential confounding variables.
+<br><br>
+
+<b>Fitted model:</b> 
 <pre>
-## plot y versus x
-with(IPO.data, plot(x = Log.Face.Value, y = Venture.Capital,
-     xlab = "Face value (in log(dollars))", ylab = "Probability of attracting capital funds",
-     panel.first = grid(col = "gray", lty = "dotted")))
-
-## construct a new data frame that covers the range of x
-new.data<-data.frame(Log.Face.Value=seq(min(IPO.data$Log.Face.Value),max(IPO.data$Log.Face.Value),by=0.1))
-## add Estimated Response to the plot
-with(new.data,lines(x=Log.Face.Value,y=predict(mod,new.data,type = "response"),lty=1,col="red"))
-
-
-## fit lowess (locally weighted scatterplot smoothing)
-mod.smooth<-loess(Venture.Capital ~ Log.Face.Value,data=IPO.data)
-## use the same new.data as above
-## add Lowess Smooth to the plot
-with(new.data,lines(x=Log.Face.Value,y=predict(mod.smooth,new.data),lty=2))
+library(lspline)
+mod.1knot <- glm(
+    Venture.Capital ~
+        lspline(Log.Face.Value, knots = 17) +
+        Number.of.shares +
+       Leveraged.Buyout,
+     family = binomial(link = logit),
+     data = IPO.data)
+mod.1knot
 </pre>
 
 <BR><BR>
 
-Here is the resulting plot.
-
-
-<BR><BR>
-
-<img src="./plots/IPOPlot3.png" alt="Plot of the success/failure against experience" >
-
-<BR><BR>
-
-
-<b>Profile log likelihood function for \(b\):</b> Assuming that \(b=17\), we maximized the log likelihood \(\ell_b(\beta_0,\beta_1,\beta_2)\). Its maximum is \(\ell_b(\hat{\beta}_0,\hat{\beta}_1,\hat{\beta}_2)=-297.7393\).
-
+<b>R output:</b>
 <pre>
-> logLik(mod)
-'log Lik.' -296.7397 (df=3)
-</pre>
-
-The profile log likelihood function for \(b\) is \(\ell(b)=\max_{\beta_0,\beta_1,\beta_2}\{ \ell_b(\beta_0,\beta_1,\beta_2) \}.\)
-
-<BR><BR>
-
-
-The value \(\hat{b}\) that maximizes the profile log likelihood function for \(b\) is the mle for \(b\). We can do the optimization numerically with the function <code>optim</code>. To do so, we need to construct a
-function of \(b\) that computes the negative of the profile log likelihood for \(b\).
-<pre>
-neg.profile.log.lik<-function(b)
-{
-  mod<-glm(Venture.Capital ~ lspline(Log.Face.Value,knots=c(b)),
-           binomial(link=logit), data=IPO.data)
-  return(-1*as.numeric(logLik(mod)))
-}
-</pre>
-
-Let us evaluate the function at \(b=17\). It should give us  296.7397.
-
-<pre>
-> neg.profile.log.lik(17)
-[1] 296.7397
-</pre>
-
-We are now ready to optimize the function. The function <code>optim</code> minimizes the function by default. So if we minimize the negative of our function, we will maximize our original function.
-
-<pre>
-> lower<-min(IPO.data$Log.Face.Value)
-> upper<-max(IPO.data$Log.Face.Value)
-> initial<-mean(IPO.data$Log.Face.Value)
-> result<-optim(par = initial,lower=lower,upper=upper,fn=neg.profile.log.lik,method="Brent")
-> result
-$par
-[1] 17.21671
-
-$value
-[1] 296.2846
-
-$counts
-function gradient
-      NA       NA
-
-$convergence
-[1] 0
-
-$message
-NULL
-</pre>
-
-<b>Remarks:</b>
-<ul><li> We used the Brent method, which is a mixture of the bisection method, the secant method and inverse quadratic interpolation. When minimizing a (continuous) univariate function over a closed interval, it will also converge to the minimum.
-<li> We need to provide the lower and upper of the interval over which we are optimizing. We must also provide an initial value. Here we used the mean of $x$ as the initial value.
-<li> A code of 0 for <code>convergence</code> means that the numerical optimization has converged.
-<li> The mle for $b$ is $\hat{b}=17.21671$. The corresponding log likelihood is $-296.2846$.
-<li> Let us use the mle for $b$ in our broken line regression model.
-
-<pre>
-> b<-result$par
-> mod<-glm(Venture.Capital ~ lspline(Log.Face.Value,knots=c(b)),
-+          binomial(link=logit), data=IPO.data)
-> summary(mod)
-
-Call:
-glm(formula = Venture.Capital ~ lspline(Log.Face.Value, knots = c(b)),
-    family = binomial(link = logit), data = IPO.data)
-
-Deviance Residuals:
-    Min       1Q   Median       3Q      Max
--1.5193  -1.0561  -0.5618   1.0734   2.2254
+Call:  glm(formula = Venture.Capital ~ lspline(Log.Face.Value, knots = 17) + 
+    Number.of.shares + Leveraged.Buyout, family = binomial(link = logit), 
+    data = IPO.data)
 
 Coefficients:
-                                       Estimate Std. Error z value Pr(>|z|)
-(Intercept)                            -21.1445     2.9429  -7.185 6.73e-13 ***
-lspline(Log.Face.Value, knots = c(b))1   1.2732     0.1777   7.166 7.74e-13 ***
-lspline(Log.Face.Value, knots = c(b))2  -1.7756     0.3778  -4.700 2.60e-06 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+                         (Intercept)  lspline(Log.Face.Value, knots = 17)1  
+                          -2.611e+01                             1.598e+00  
+lspline(Log.Face.Value, knots = 17)2                      Number.of.shares  
+                          -9.125e-01                            -1.533e-07  
+                    Leveraged.Buyout  
+                          -1.787e-01  
 
-(Dispersion parameter for binomial family taken to be 1)
-
-    Null deviance: 661.20  on 481  degrees of freedom
-Residual deviance: 592.57  on 479  degrees of freedom
-AIC: 598.57
-
-Number of Fisher Scoring iterations: 3
+Degrees of Freedom: 481 Total (i.e. Null);  477 Residual
+Null Deviance:	    661.2 
+Residual Deviance: 592.4 	AIC: 602.4
 </pre>
 
 <BR><BR>
 
-The odds ratio for the companies with a small face value (i.e. \(x< 17.21671\)) is \(e^{1.273175}=3.572.\) If the face value is large (i.e. \(x\geq 17.21671\)), then the odds ratio is
-\(e^{-1.7756}=0.169.\)
+<b>Interpretation of the fitted model:</b> The <code>lspline</code> function reports the slopes of the consecutive spline segments. The estimated intercept is \(-26.11\). The estimated slope is 1.598 for companies with \(x<17\) and \(-0.9125\) for companies with \(x\ge 17\), where
+
+\[
+x=\mbox{Log.Face.Value},
+\qquad
+z_1=\mbox{Number.of.shares},
+\qquad
+z_2=\mbox{Leveraged.Buyout}.
+\]
+
+Consequently, the fitted model may be written as
+
+\[
+\mbox{logit}(\pi)
+=
+\left\{
+\begin{array}{ll}
+-26.11
++
+1.598\,x
+-
+1.533\times 10^{-7}z_1
+-
+0.1787\,z_2,
+&
+x<17,
+\\
+\alpha
+-
+0.9125\,x
+-
+1.533\times 10^{-7}z_1
+-
+0.1787\,z_2,
+&
+x\ge 17,
+\end{array}
+\right.
+\]
+
+where \(\alpha\) is chosen so that the two line segments join continuously at \(x=17\).
+
+<br><br>
+
+For companies with \(x<17\), the estimated odds ratio associated with a one-unit increase in <code>Log.Face.Value</code> is
+
+\[
+e^{1.598}=4.94.
+\]
+
+After controlling for <code>Number.of.shares</code> and <code>Leveraged.Buyout</code>, we estimate that the odds of attracting venture capital funding increase by approximately
+
+\[
+(e^{1.598}-1)\times 100\%=394\%
+\]
+
+for each one-unit increase in <code>Log.Face.Value</code> when \(x<17\).
+
+<br><br>
+
+For companies with \(x\ge 17\), the estimated odds ratio associated with a one-unit increase in <code>Log.Face.Value</code> is
+
+\[
+e^{-0.9125}=0.401.
+\]
+
+After controlling for <code>Number.of.shares</code> and <code>Leveraged.Buyout</code>, we estimate that the odds of attracting venture capital funding decrease by approximately
+
+\[
+(1-e^{-0.9125})\times 100\%=59.9\%
+\]
+
+for each one-unit increase in <code>Log.Face.Value</code> when \(x\ge 17\).
+
+<br><br>
+
+Thus, after controlling for the number of shares offered and the presence of a leveraged buyout, the relationship between <code>Log.Face.Value</code> and the probability of attracting venture capital funding is positive for companies with relatively small face values and negative for companies with relatively large face values. The breakpoint occurs at approximately 17 log(dollars).
+
+
+
+<br>
+<br><br>
+
+<B>The estimated model:</b>
+
+
+\[
+\mbox{logit}(\pi)
+=
+\left\{
+\begin{array}{ll}
+-26.11
++
+1.598\,x
+-
+1.533\times 10^{-7}z_1
+-
+0.1787\,z_2,
+&
+x<17,
+\\
+\alpha
+-
+0.9125\,x
+-
+1.533\times 10^{-7}z_1
+-
+0.1787\,z_2,
+&
+x\ge 17,
+\end{array}
+\right.
+\]
+
+where \(\alpha\) is chosen so that the two line segments join continuously at \(x=17\).
+\]
+
 
 <BR><BR>
 
-
-<BR><BR>
-
-Here are the commands to produce the plot with the fitted response function and the lowess curve. Our model appears to fit the data well.
-
-<BR><BR>
+<b>Testing whether the slopes differ:</b>
+A linear relationship corresponds to a spline model whose two segments have the same slope. Consequently, we may compare the baseline linear model with the one-knot spline model using a likelihood-ratio test.
 
 <pre>
-## plot y versus x
-with(IPO.data, plot(x = Log.Face.Value, y = Venture.Capital,
-     xlab = "Face value (in log(dollars))", ylab = "Probability of attracting capital funds",
-     panel.first = grid(col = "gray", lty = "dotted")))
-
-## construct a new data frame that covers the range of x
-new.data<-data.frame(Log.Face.Value=seq(min(IPO.data$Log.Face.Value),max(IPO.data$Log.Face.Value),by=0.1))
-## add Estimated Response to the plot
-with(new.data,lines(x=Log.Face.Value,y=predict(mod,new.data,type = "response"),lty=1,col="red"))
-
-
-## fit lowess (locally weighted scatterplot smoothing)
-mod.smooth<-loess(Venture.Capital ~ Log.Face.Value,data=IPO.data)
-## use the same new.data as above
-## add Lowess Smooth to the plot
-with(new.data,lines(x=Log.Face.Value,y=predict(mod.smooth,new.data),lty=2))
+anova(mod.1df, mod.1knot, test="LR")
 </pre>
 
-
-Here is the resulting plot.
-
-
-<BR><BR>
-
-<img src="./plots/IPOPlot4.png" alt="Plot of the success/failure against experience" >
-
-<BR><BR>
-
-</ul>
-
-
-<BR><BR>
-
-Do we have significant evidence that the odds ratios are different for small face value companies versus large face value companies?
-
-<BR><BR>
-
-We will compare the full model which is a logistic model with a linear spline of the log face value versus the reduced model which is a logistic model of the log face value. We fit below the reduced, and used the <code>anova</code> function to compare the nested models with the likelihood ratio test.
-
-<BR><BR>
+The likelihood-ratio test is highly significant (Dev(1)=23.71,
+<i>p</i>&lt;0.0001), providing strong evidence that the slopes below and above the knot are different. Thus, after controlling for <code>Number.of.shares</code> and <code>Leveraged.Buyout</code>, the relationship between the probability of attracting venture capital funding and <code>Log.Face.Value</code> cannot be adequately described by a single straight line.
+<br><br>
 
 <pre>
-> mod.H0<-glm(Venture.Capital ~ Log.Face.Value,
-+                  binomial(link=logit), data=IPO.data)
-> anova(mod.H0, mod,test="LR")
+> anova(mod.1df,mod.1knot)
 Analysis of Deviance Table
 
-Model 1: Venture.Capital ~ Log.Face.Value
-Model 2: Venture.Capital ~ lspline(Log.Face.Value, knots = c(b))
-  Resid. Df Resid. Dev Df Deviance  Pr(>Chi)
-1       480     643.13
-2       479     592.57  1   50.563 1.154e-12 ***
+Model 1: Venture.Capital ~ poly(Log.Face.Value, degree = 1, raw = TRUE) + 
+    Number.of.shares + Leveraged.Buyout
+Model 2: Venture.Capital ~ lspline(Log.Face.Value, knots = 17) + Number.of.shares + 
+    Leveraged.Buyout
+  Resid. Df Resid. Dev Df Deviance  Pr(>Chi)    
+1       478     616.09                          
+2       477     592.38  1   23.708 1.121e-06 ***
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  
+0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 
 </pre>
+
+
+
+
 
 
 <BR><BR>
 
-<b>Do you notice anything wrong?</b> Hint: Look at the degrees of freedom for the deviance. It is 1 df. But, the full model has 4 parameters: $\beta_0,\beta_1,\beta_2,b$, and the reduced model has 2 parameters: $\beta_0,\beta_1$. So the deviance should have 2 degrees of freedom. When we fit the full model, the <code>glm</code> function does not know that we estimated $b$. It is considered as a known value. So we need to change the residual degrees of freedom for the full model. We have significant evidence that the odds ratio are different (Dev(2)=50.563; p<.0001).
 
 
+<b>Comparing the quadratic and spline models:</b>
+Both the quadratic model and the one-knot spline model provide a two-degree-of-freedom representation of the effect of Log.Face.Value.
+The quadratic model has an AIC of 597.73, whereas the one-knot spline model has an AIC of 602.38. The difference of 4.65 AIC units suggests that the quadratic model provides a somewhat better fit to the data. However, the improvement is modest. In practice, it is often reasonable to sacrifice a small amount of information in exchange for a model that is easier to interpret. The one-knot spline model provides a simple description of the relationship by allowing separate slopes for companies with smaller and larger face values. For this reason, we will use the one-knot spline model in the remainder of the analysis.
+<br><br>
+
+<br><br>
 
 <pre>
-> mod$df.residual<-mod$df.residual-1
-> anova(mod.H0, mod,test="LR")
-Analysis of Deviance Table
-
-Model 1: Venture.Capital ~ Log.Face.Value
-Model 2: Venture.Capital ~ lspline(Log.Face.Value, knots = c(b))
-  Resid. Df Resid. Dev Df Deviance  Pr(>Chi)
-1       480     643.13
-2       478     592.57  2   50.563 1.048e-11 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> AIC(mod.1knot,mod.2df)
+          df      AIC
+mod.1knot  5 602.3846
+mod.2df    5 597.7321
 </pre>
 
 <BR><BR>
 
 
 
+<b>Model stability:</b> The likelihood-ratio tests and AIC comparisons among the one-, two-, and three-degree-of-freedom polynomial models consistently suggested that a two-degree-of-freedom model is sufficient to describe the effect of <code>Log.Face.Value</code>. The one-knot spline model provides an interpretable representation of such a model. Thus, both the model-selection analysis and the fitted spline model support the conclusion that the relationship between the probability of attracting venture capital funding and <code>Log.Face.Value</code> is nonlinear but relatively simple. This consistency increases our confidence in the conclusions of the analysis.
+<br>
+
+<br>
+<br><br>
+
+
+<br><br>
+
+<b>Takeaway:</b> Different statistical models may provide slightly different fits to the data. However, if several reasonable models lead to the same substantive conclusion, then the conclusion is more credible. In this example, both polynomial and spline models suggest that a two-degree-of-freedom representation of <code>Log.Face.Value</code> is sufficient and that the effect of face value changes across its range.
+
+<br><br>
+
+
+The agreement among several reasonable models is reassuring. However, it is important to remember that these models were not specified in advance. Instead, they were chosen after examining the data.
+<br><br>
+
+<BR><BR>
+
+<b>Remark (Exploratory versus confirmatory analysis):</b>
+The distinction between exploratory and confirmatory analyses is not always clear-cut. In this example, we used the data to determine how many degrees of freedom should be allocated to <code>Log.Face.Value</code>. This is an exploratory modelling step because the complexity of the model was chosen after examining the data. The subsequent likelihood-ratio tests and AIC comparisons should therefore be interpreted with some caution. In general, the more extensive the model exploration, the greater the risk of identifying patterns that are specific to the current sample rather than to the underlying population. Consequently, statistical inferences made after substantial model searching are often less reliable than inferences based on a model specified in advance. For this reason, it is good practice to favour simple, interpretable models and to assess whether the conclusions remain stable across several reasonable modelling choices.
+<br><br>
+
+The spline model was chosen after examining the data and comparing several competing models. Consequently, the usual confidence intervals and p-values reported by the fitted spline model should be interpreted with some caution. These inferential procedures implicitly assume that the model structure was specified in advance. When the data are used to guide model selection, the resulting confidence intervals may be too narrow and the p-values may be too small. The effect is often modest when only a small number of reasonable models are considered, but it can become substantial when extensive model searching is performed.
+
+<br><br>
+
+<b>Remark (Model uncertainty):</b> The final spline model should not be viewed as the only plausible description of the relationship between <code>Log.Face.Value</code> and the probability of attracting venture capital funding. The data also support a quadratic model with two degrees of freedom, and other reasonable two-degree-of-freedom models could be considered. Consequently, some uncertainty remains regarding the precise functional form of the relationship. In this example, our primary conclusion is therefore not that the one-knot spline model is the true model, but rather that the relationship is nonlinear and that a relatively simple two-degree-of-freedom model appears sufficient to describe it.
+<br><br>
 
 
 
+<b>Advanced remark:</b> One way to account for model-selection uncertainty is to use a bootstrap procedure. For each bootstrap sample, the entire model-building process is repeated, including the selection of the number of degrees of freedom and the fitting of the spline model. The variability of the resulting estimates can then be used to construct confidence intervals that reflect both sampling variability and model-selection uncertainty. Such intervals are often more reliable than the confidence intervals obtained from the final fitted model alone.
+
+<br><br>
 
 
+<b>Remark (The current state of the field):</b> The statistical community now recognizes that model selection can substantially affect the reliability of confidence intervals and p-values. When the same data are used to explore several competing models and to perform statistical inference, the resulting confidence intervals may be too narrow and the p-values may be too small. Although considerable research has been devoted to post-selection inference, there is currently no universally accepted solution that applies to all model-building strategies.
 
+<br><br>
 
+Several approaches have been proposed. These include selective-inference procedures that explicitly account for the model-selection process, sample-splitting methods that separate model building from inference, and bootstrap procedures that repeat the entire model-building process across many resampled datasets. Each approach has advantages and limitations, and the choice of method depends on the goals of the analysis and the complexity of the model-selection process.
 
+<br><br>
 
+In modern applied statistics, many analysts attempt to reduce model-selection uncertainty by favouring simple, scientifically motivated models, by using flexible modelling tools such as splines rather than repeatedly testing many alternative models, and by assessing whether their substantive conclusions remain stable across several reasonable modelling choices. Consequently, the focus is often less on identifying a single "best" model and more on determining whether the scientific conclusions are robust to plausible modelling assumptions.
+
+<br><br>
 
 <BR><BR><BR>
 

@@ -6470,7 +6470,7 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 
 <BR><BR>
 
-Let us compute the information-theoretic effect size for each effect as the difference between the AIC of the reduced model and the AIC of the full model. Positive values indicate that retaining the effect reduces information loss, while negative values indicate that the additional complexity of the effect is not supported by the data. The main effects of Infl, Type, and Cont all have positive effect sizes. Among the interaction effects, the interaction between Infl and Type also has a substantial positive effect size ((\Delta\mathrm{AIC}=9.72\)), indicating that it contributes useful information beyond the additive model. In contrast, there is little evidence that the remaining interaction effects improve the model. We therefore retain the interaction between Infl and Type and proceed with a proportional odds model that includes this interaction.
+Let us compute the information-theoretic effect size for each effect as the difference between the AIC of the reduced model and the AIC of the full model. Positive values indicate that retaining the effect reduces information loss, while negative values indicate that the additional complexity of the effect is not supported by the data. The main effects of Infl, Type, and Cont all have positive effect sizes. Among the interaction effects, the interaction between Infl and Type also has a substantial positive effect size (\(\Delta\mathrm{AIC}=9.72\)), indicating that it contributes useful information beyond the additive model. In contrast, there is little evidence that the remaining interaction effects improve the model. We therefore retain the interaction between Infl and Type and proceed with a proportional odds model that includes this interaction.
 
 <BR><BR>
 
@@ -6544,10 +6544,7 @@ AIC: 3484.64
 
 <b>Cont:</b>
 Let use start by describing the effects of <code>Cont</code>. The estimated coefficient for a high level of resident contact is \(0.3721\). The corresponding proportional odds ratio is
-\[
-exp⁡(0.3721)=1.45.\exp(0.3721)=1.45.exp(0.3721)=1.45.
-\]
-After adjusting for perceived influence and accommodation type, residents reporting a high level of contact with other residents have estimated odds of being in a higher satisfaction category that are approximately 45% larger than residents reporting a low level of contact.
+\(\exp⁡(0.3721)=1.45.\) After adjusting for perceived influence and accommodation type, residents reporting a high level of contact with other residents have estimated odds of being in a higher satisfaction category that are approximately 45% larger than residents reporting a low level of contact.
 
 
 <BR><BR>
@@ -6555,37 +6552,79 @@ After adjusting for perceived influence and accommodation type, residents report
 <b>Infl and Type:</b>
 Effects of perceived influence and accommodation type: The interaction between Infl and Type indicates that the relationship between perceived influence and satisfaction depends on the type of accommodation. Consequently, there is no single odds ratio that adequately summarizes the effect of perceived influence across all accommodation types. The estimated odds ratio comparing residents with high versus low perceived influence is 2.38 for Tower residents, 4.90 for Apartment residents, 2.04 for Atrium residents, and 5.55 for Terrace residents. Thus, higher perceived influence is associated with increased satisfaction for all accommodation types, but the magnitude of this association varies considerably. In particular, the effect of perceived influence appears much stronger for residents living in Apartments and Terraces than for residents living in Towers or Atriums. Equivalently, the differences in satisfaction among accommodation types depend on the perceived degree of influence that residents have on the management of the property. The significant interaction between Infl and Type therefore suggests that these two factors jointly affect housing satisfaction and should not be interpreted independently.
 
+<BR><BR>
+
 <table border="1" cellpadding="6" cellspacing="0">
 <tr>
   <th>Accommodation Type</th>
-  <th>Log Odds Ratio<br>(High vs Low Infl)</th>
-  <th>Odds Ratio<br>(High vs Low Infl)</th>
+  <th>Estimated Odds Ratio<br>(High vs Low Influence)</th>
+  <th>Interpretation</th>
 </tr>
 
 <tr>
   <td>Tower</td>
-  <td>0.8689</td>
   <td>2.38</td>
+  <td>The odds of being in a higher satisfaction category are estimated to be 2.38 times larger for residents with high perceived influence than for residents with low perceived influence.</td>
 </tr>
 
 <tr>
   <td>Apartment</td>
-  <td>0.8689 + 0.7198 = 1.5887</td>
   <td>4.90</td>
+  <td>The odds of being in a higher satisfaction category are estimated to be 4.90 times larger for residents with high perceived influence than for residents with low perceived influence.</td>
 </tr>
 
 <tr>
   <td>Atrium</td>
-  <td>0.8689 - 0.1555 = 0.7134</td>
   <td>2.04</td>
+  <td>The odds of being in a higher satisfaction category are estimated to be 2.04 times larger for residents with high perceived influence than for residents with low perceived influence.</td>
 </tr>
 
 <tr>
   <td>Terrace</td>
-  <td>0.8689 + 0.8446 = 1.7135</td>
   <td>5.55</td>
+  <td>The odds of being in a higher satisfaction category are estimated to be 5.55 times larger for residents with high perceived influence than for residents with low perceived influence.</td>
 </tr>
 </table>
+
+
+<BR><BR>
+
+<B>Effects of accommodation type within levels of perceived influence:</b>  The interaction between Infl and Type can also be viewed by comparing accommodation types within each level of perceived influence. Among residents with low perceived influence, those living in Apartments, Atriums, and Terraces have estimated odds of higher satisfaction that are only 30%, 55%, and 20%, respectively, of those living in Towers. The differences between accommodation types become smaller among residents with medium perceived influence, suggesting that increased influence partly compensates for the lower satisfaction associated with some accommodation types. In particular, the estimated odds of higher satisfaction are nearly identical for residents living in Atriums and Towers when perceived influence is medium (OR=1.05). These results illustrate that the effect of accommodation type depends on the degree of influence residents perceive they have on the management of the property.
+
+<BR><BR>
+
+
+<table border="1" cellpadding="6" cellspacing="0">
+<tr>
+  <th>Influence Level</th>
+  <th>Apartment vs Tower</th>
+  <th>Atrium vs Tower</th>
+  <th>Terrace vs Tower</th>
+</tr>
+
+<tr>
+  <td>Low</td>
+  <td>0.30</td>
+  <td>0.55</td>
+  <td>0.20</td>
+</tr>
+
+<tr>
+  <td>Medium</td>
+  <td>0.90</td>
+  <td>1.05</td>
+  <td>0.46</td>
+</tr>
+
+<tr>
+  <td>High</td>
+  <td>0.63</td>
+  <td>0.47</td>
+  <td>0.47</td>
+</tr>
+</table>
+
+
 
 </ul>
 
@@ -6594,7 +6633,7 @@ Effects of perceived influence and accommodation type: The interaction between I
 
 
 
-<BR><BR>
+<BR><BR><BR><BR>
 
 
 

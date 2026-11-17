@@ -87,7 +87,7 @@ Table of contents
 <BR>
 <a href="#example21"> Example 21 : Logistic regression with a categorical predictor   </a>
 <BR>
-<a href="#example22"> Example 22 : Broken Line Regression  </a>
+<a href="#example22"> Example 22 : Assessing and Modeling a Nonlinear Effect in Logistic Regression  </a>
 <BR>
 <a href="#example23"> Example 23 : A few links: Logit, Probit, Complementary log-log, log-log </a>
 <BR>
@@ -4157,7 +4157,7 @@ attr(,"calpha")
 
 
 <a NAME="example22">
-<h2><b><center>Example 22 : Broken Line Regression (linear spline model)   </center></b></h2>
+<h2><b><center>Example 22 : Assessing and Modeling a Nonlinear Effect in Logistic Regression  </center></b></h2>
 
 <BR><BR>
 
@@ -6300,7 +6300,18 @@ The model that the function <code>polr</code> is fitting is as follows:
 \[
 \mbox{logit}(P(Y\leq j))=\log\left(\frac{P(Y\leq j)}{P(Y>j)}\right)=\beta_{j0}-\eta(x),
 \]
-where $\(\eta(x)\)$ is a linear predictor (without an intercept) that is independent of the break point $j$.
+where \(\eta(x)\) is a linear predictor (without an intercept) that is independent of the break point $j$.
+
+<BR><BR>
+
+
+<b>Comment:</b>
+
+Because the model is written as 
+\[
+\mbox{logit}(P(Y\leq j))=\beta_{j0}-\eta(x)
+\]
+a positive regression coefficient shifts probability mass toward higher satisfaction categories. Consequently, odds ratios greater than one correspond to an increased tendency toward higher satisfaction.
 
 <BR><BR>
 
@@ -6416,13 +6427,13 @@ Model 2: Sat ~ Infl + Type + Cont
 </pre>
 
 
-
 <b>Interpretation:</b>
-<ul><li> \(\mbox{AIC}_R-\mbox{AIC}_F< 0 \),
+<ul>
+<li> \(\mbox{AIC}_R-\mbox{AIC}_F<0\),
+we estimate that the reduced model leads to less information loss and is therefore preferred.
 
-we estimate that the use of the reduced model will lead to an information gain.
-
-<li> <li> \(\mbox{AIC}_R-\mbox{AIC}_F>0 \), we estimate that the use of the full model will lead to an information gain compared to the reduced model. We can interpret this quantity as an effect size. A larger value is interpreted as a larger effect size.
+<li> \(\mbox{AIC}_R-\mbox{AIC}_F>0\),
+we estimate that including the additional effect reduces information loss compared with the reduced model. We interpret this quantity as an <b>information-theoretic effect size</b>. Larger values indicate a larger contribution of the effect to describing the distribution of the response.
 </ul>
 
 
@@ -6459,27 +6470,25 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 
 <BR><BR>
 
-Let us compute the effect size for each type of effect as the difference between the AIC of the reduced model and the full model. There is only one of the interaction effects that has a positive effect size. It is the interaction effect between
-<code>Infl</code> and <code>Type</code>. However, the effect size of the main effects of <code>Infl</code> and for <code>Type</code> are \(6.9773239/0.1089175=64\) times and \(13.5802942/0.1089175=124.7\) times as large as
-the corresponding interaction effects, respectively. It is reasonable to ignore these interaction effects.
+Let us compute the information-theoretic effect size for each effect as the difference between the AIC of the reduced model and the AIC of the full model. Positive values indicate that retaining the effect reduces information loss, while negative values indicate that the additional complexity of the effect is not supported by the data. The main effects of Infl, Type, and Cont all have positive effect sizes. Among the interaction effects, the interaction between Infl and Type also has a substantial positive effect size ((\Delta\mathrm{AIC}=9.72\)), indicating that it contributes useful information beyond the additive model. In contrast, there is little evidence that the remaining interaction effects improve the model. We therefore retain the interaction between Infl and Type and proceed with a proportional odds model that includes this interaction.
 
 <BR><BR>
 
 <pre>
 > house.polr.int <- polr(Sat ~ Infl * Type * Cont, weights = Freq, data = housing)
-> test<-Anova(house.polr.int,type="III")
+> test<-Anova(house.polr.int,type="II")
 > df<-test[[2]]
 > DEV<-test[[1]]
 > change.in.AIC<-DEV-2*df
 > data.frame(effect=row.names(test),change.in.AIC=change.in.AIC)
           effect change.in.AIC
-1           Infl     6.9773239
-2           Type    13.5802942
-3           Cont     0.7004236
-4      Infl:Type     0.1089175
-5      Infl:Cont    -3.9754058
-6      Type:Cont    -2.8926960
-7 Infl:Type:Cont    -9.8749942
+1           Infl    102.489001
+2           Type     49.537032
+3           Cont     13.120429
+4      Infl:Type      9.717372
+5      Infl:Cont     -3.888425
+6      Type:Cont      1.924547
+7 Infl:Type:Cont     -9.874994
 </pre>
 
 
@@ -6488,115 +6497,95 @@ the corresponding interaction effects, respectively. It is reasonable to ignore 
 </ul>
 
 
+<BR><BR>
+
+<B>Describing the effects:</b> We fit a proportio
 
 
 <BR><BR>
-
-<B>Describing the effects:</b> We will use an additive proportional odds model to describe the effects that the three explanatory variables <code>Infl</code>, <code>Type</code>, and <code>Cont</code> have on the distribution of the response variable <code> Sat</code>.
-
-<BR><BR>
-
-Let use start by describing the effects of <code>Infl</code>
 
 
 <pre>
-> house.polr <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
-> library(multcomp)
-> multcomp.Infl<-glht(house.polr,mcp(Infl="Tukey"))
+> house.polr.int <- polr(Sat ~ Infl +Type + Cont + Infl:Type, weights = Freq, data = housing)
+> model <- polr(Sat ~ Infl +Type + Cont + Infl:Type, weights = Freq, data = housing)
+> summary(model)
 
 Re-fitting to get Hessian
+Call:
+polr(formula = Sat ~ Infl + Type + Cont + Infl:Type, data = housing, 
+    weights = Freq)
 
-> summary(multcomp.Infl)
+Coefficients:
+                           Value Std. Error t value
+InflMedium               -0.1390    0.21255 -0.6541
+InflHigh                  0.8689    0.27434  3.1671
+TypeApartment            -1.1885    0.19724 -6.0256
+TypeAtrium               -0.6067    0.24457 -2.4808
+TypeTerrace              -1.6062    0.24100 -6.6650
+ContHigh                  0.3721    0.09599  3.8764
+InflMedium:TypeApartment  1.0809    0.26585  4.0657
+InflHigh:TypeApartment    0.7198    0.32873  2.1896
+InflMedium:TypeAtrium     0.6511    0.34500  1.8873
+InflHigh:TypeAtrium      -0.1555    0.41048 -0.3789
+InflMedium:TypeTerrace    0.8210    0.33067  2.4829
+InflHigh:TypeTerrace      0.8446    0.43027  1.9630
 
-         Simultaneous Tests for General Linear Hypotheses
+Intercepts:
+            Value   Std. Error t value
+Low|Medium  -0.8882  0.1672    -5.3135
+Medium|High  0.3126  0.1657     1.8871
 
-Multiple Comparisons of Means: Tukey Contrasts
-
-
-Fit: polr(formula = Sat ~ Infl + Type + Cont, data = housing, weights = Freq)
-
-Linear Hypotheses:
-                   Estimate Std. Error z value Pr(>|z|)
-Medium - Low == 0    0.5664     0.1047   5.412 1.79e-07 ***
-High - Low == 0      1.2888     0.1272  10.136  < 1e-07 ***
-High - Medium == 0   0.7224     0.1243   5.813  < 1e-07 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-(Adjusted p values reported -- single-step method)
+Residual Deviance: 3456.64 
+AIC: 3484.64 
 </pre>
 
 
 <BR><BR>
 
-<b>Comments:</b>
-<ul><li>  As a reference, here are the estimated coefficients for the model. Low is the reference category for Infl. So the beta for Medium, which is 0.5664, is the comparison of the effects of Medium versus Low. The adjusted $p$-value is small, so there is a
-significance difference between a medium Infl and a Low Infl. Computing the exponential is the OR=1.7619. We estimate that the odds in the direction of being more satisfied is 76% larger when Infl is Medium in comparison to Low.
+<b>Cont:</b>
+Let use start by describing the effects of <code>Cont</code>. The estimated coefficient for a high level of resident contact is \(0.3721\). The corresponding proportional odds ratio is
+\[
+exp⁡(0.3721)=1.45.\exp(0.3721)=1.45.exp(0.3721)=1.45.
+\]
+After adjusting for perceived influence and accommodation type, residents reporting a high level of contact with other residents have estimated odds of being in a higher satisfaction category that are approximately 45% larger than residents reporting a low level of contact.
 
-<pre>
-> coefficients(house.polr)
-   InflMedium      InflHigh TypeApartment    TypeAtrium   TypeTerrace      ContHigh
-    0.5663937     1.2888191    -0.5723501    -0.3661866    -1.0910149     0.3602841
-> levels(housing$Sat)
-[1] "Low"    "Medium" "High"
-</pre>
-
-
-<li> Since all three comparisons are significant and the estimated OR are greater than 1, then we can conclude that the odds in the direction of being more satisfied increases as the perceived degree of influence householders have on the management of the property is larger.
 
 <BR><BR>
 
+<b>Infl and Type:</b>
+Effects of perceived influence and accommodation type: The interaction between Infl and Type indicates that the relationship between perceived influence and satisfaction depends on the type of accommodation. Consequently, there is no single odds ratio that adequately summarizes the effect of perceived influence across all accommodation types. The estimated odds ratio comparing residents with high versus low perceived influence is 2.38 for Tower residents, 4.90 for Apartment residents, 2.04 for Atrium residents, and 5.55 for Terrace residents. Thus, higher perceived influence is associated with increased satisfaction for all accommodation types, but the magnitude of this association varies considerably. In particular, the effect of perceived influence appears much stronger for residents living in Apartments and Terraces than for residents living in Towers or Atriums. Equivalently, the differences in satisfaction among accommodation types depend on the perceived degree of influence that residents have on the management of the property. The significant interaction between Infl and Type therefore suggests that these two factors jointly affect housing satisfaction and should not be interpreted independently.
 
+<table border="1" cellpadding="6" cellspacing="0">
+<tr>
+  <th>Accommodation Type</th>
+  <th>Log Odds Ratio<br>(High vs Low Infl)</th>
+  <th>Odds Ratio<br>(High vs Low Infl)</th>
+</tr>
 
-Here are the tests for describing the effects of the other two explanatory variables.
+<tr>
+  <td>Tower</td>
+  <td>0.8689</td>
+  <td>2.38</td>
+</tr>
 
-<pre>
-> multcomp.Type<-glht(house.polr,mcp(Type="Tukey"))
+<tr>
+  <td>Apartment</td>
+  <td>0.8689 + 0.7198 = 1.5887</td>
+  <td>4.90</td>
+</tr>
 
-Re-fitting to get Hessian
+<tr>
+  <td>Atrium</td>
+  <td>0.8689 - 0.1555 = 0.7134</td>
+  <td>2.04</td>
+</tr>
 
-> summary(multcomp.Type)
-
-         Simultaneous Tests for General Linear Hypotheses
-
-Multiple Comparisons of Means: Tukey Contrasts
-
-
-Fit: polr(formula = Sat ~ Infl + Type + Cont, data = housing, weights = Freq)
-
-Linear Hypotheses:
-                         Estimate Std. Error z value Pr(>|z|)
-Apartment - Tower == 0    -0.5724     0.1192  -4.800   <0.001 ***
-Atrium - Tower == 0       -0.3662     0.1552  -2.360   0.0832 .
-Terrace - Tower == 0      -1.0910     0.1515  -7.202   <0.001 ***
-Atrium - Apartment == 0    0.2062     0.1380   1.494   0.4360
-Terrace - Apartment == 0  -0.5187     0.1334  -3.887   <0.001 ***
-Terrace - Atrium == 0     -0.7248     0.1657  -4.376   <0.001 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-(Adjusted p values reported -- single-step method)
-
-> multcomp.Cont<-glht(house.polr,mcp(Cont="Tukey"))
-
-Re-fitting to get Hessian
-
-> summary(multcomp.Cont)
-
-         Simultaneous Tests for General Linear Hypotheses
-
-Multiple Comparisons of Means: Tukey Contrasts
-
-
-Fit: polr(formula = Sat ~ Infl + Type + Cont, data = housing, weights = Freq)
-
-Linear Hypotheses:
-                Estimate Std. Error z value Pr(>|z|)
-High - Low == 0  0.36028    0.09554   3.771 0.000162 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-(Adjusted p values reported -- single-step method)
-
-</pre>
-
+<tr>
+  <td>Terrace</td>
+  <td>0.8689 + 0.8446 = 1.7135</td>
+  <td>5.55</td>
+</tr>
+</table>
 
 </ul>
 
